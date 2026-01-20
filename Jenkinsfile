@@ -15,6 +15,14 @@ pipeline {
                 }
             }
         }
+        stage('Security Scan') {
+            steps {
+                script {
+                    // Scan Docker image for vulnerabilities
+                    sh 'trivy image --exit-code 1 static-website:latest || true'
+                }
+            }
+        }
 
         stage('Deploy Container') {
             steps {
