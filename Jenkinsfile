@@ -2,26 +2,31 @@ pipeline {
     agent any
 
     stages {
-        stage('Clone Repo') {
+        stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/coderritesh/cicd-static-site.git'
+                git branch: 'main', url: 'https://github.com/coderritesh/cicd-static-site'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t cicd-static-site .'
+                script {
+                    docker.build("static-website:latest")
+                }
             }
         }
 
-        stage('Run Docker Container') {
+        stage('Deploy Container') {
             steps {
-                sh '''
-                docker stop cicd-container || true
-                docker rm cicd-container || true
-                docker run -d -p 8082:80 --name cicd-container cicd-static-site
-                '''
+                script {
+                    sh '''
+                    docker stop static-website-container || true
+                    docker rm static-website-container || true
+                    docker run -d --name static-website-container -p 8081:80 static-website:latest
+                    '''
+                }
             }
         }
     }
 }
+
