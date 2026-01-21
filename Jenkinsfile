@@ -6,7 +6,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/coderritesh/cicd-static-site.git'
+                    url: 'https://github.com/coderritesh/cicd-static-site'
             }
         }
 
@@ -18,10 +18,11 @@ pipeline {
             }
         }
 
-        stage('Security Scan (Trivy)') {
+        stage('Trivy Security Scan') {
             steps {
                 sh '''
-                trivy image --exit-code 0 static-website:latest || true
+                trivy image --exit-code 0 --severity LOW,MEDIUM static-website:latest
+                trivy image --exit-code 1 --severity HIGH,CRITICAL static-website:latest || true
                 '''
             }
         }
@@ -31,24 +32,10 @@ pipeline {
                 sh '''
                 docker stop static-website-container || true
                 docker rm static-website-container || true
-
-                docker run -d \
-                  --name static-website-container \
-                  -p 8081:80 \
-                  static-website:latest
+                docker run -d -p 8081:80 --name static-website-container static-website:latest
                 '''
             }
         }
     }
-
-    post {
-        success {
-            echo "✅ DevSecOps Pipeline Completed Successfully"
-        }
-        failure {
-            echo "❌ Pipeline Failed"
-        }
-    }
 }
-
 
